@@ -9,6 +9,7 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: ai.e6.homekeep
+        certificate: kai-signing-certificate
       vars:
         BUNDLE_ID: ai.e6.homekeep
         APP_STORE_CONNECT_ISSUER_ID: 6542e2a9-fff8-4124-9083-2186cad6de0b
