@@ -17,6 +17,10 @@ A simple, beautiful iOS app to track recurring home maintenance tasks. Set it on
 
 *Coming soon*
 
+## Release Docs
+
+- App Store media runbook: `docs/app-store-media-runbook.md`
+
 ## Technical Details
 
 - **SwiftUI** — Modern declarative UI

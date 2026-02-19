@@ -24,7 +24,9 @@ struct HomeKeepApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    NotificationService.shared.requestAuthorization()
+                    if !AppMediaMode.enabled {
+                        NotificationService.shared.requestAuthorization()
+                    }
                 }
         }
         .modelContainer(sharedModelContainer)
