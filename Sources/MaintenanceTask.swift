@@ -8,8 +8,7 @@ enum TaskFrequency: String, Codable, CaseIterable, Identifiable {
     case quarterly = "Every 3 Months"
     case biannual = "Every 6 Months"
     case annual = "Yearly"
-    case seasonal = "Seasonal"
-    
+
     var id: String { rawValue }
     
     var days: Int {
@@ -20,7 +19,6 @@ enum TaskFrequency: String, Codable, CaseIterable, Identifiable {
         case .quarterly: return 90
         case .biannual: return 182
         case .annual: return 365
-        case .seasonal: return 90
         }
     }
     
@@ -32,7 +30,6 @@ enum TaskFrequency: String, Codable, CaseIterable, Identifiable {
         case .quarterly: return "3mo"
         case .biannual: return "6mo"
         case .annual: return "1yr"
-        case .seasonal: return "season"
         }
     }
 }
@@ -51,15 +48,6 @@ enum Season: String, Codable, CaseIterable, Identifiable {
         case .summer: return "sun.max.fill"
         case .fall: return "wind"
         case .winter: return "snowflake"
-        }
-    }
-    
-    var color: String {
-        switch self {
-        case .spring: return "SpringGreen"
-        case .summer: return "SummerYellow"
-        case .fall: return "FallOrange"
-        case .winter: return "WinterBlue"
         }
     }
     
@@ -160,19 +148,24 @@ final class MaintenanceTask {
         guard let nextDue else { return nil }
         return Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: Date()), to: Calendar.current.startOfDay(for: nextDue)).day
     }
-    
-    var urgencyColor: String {
-        guard let days = daysUntilDue else { return "secondary" }
-        if days < 0 { return "OverdueRed" }
-        if days <= 7 { return "UrgenOrange" }
-        if days <= 30 { return "SoonYellow" }
-        return "OkGreen"
+
+    func ensureNextDueIfMissing(referenceDate: Date = Date()) {
+        guard nextDue == nil else { return }
+        let anchorDate = lastCompleted ?? referenceDate
+        nextDue = Calendar.current.date(byAdding: .day, value: frequency.days, to: anchorDate)
     }
-    
-    func markComplete() {
-        let record = CompletionRecord(task: self)
+
+    func refreshNextDueFromLastCompleted(referenceDate: Date = Date()) {
+        let anchorDate = lastCompleted ?? referenceDate
+        nextDue = Calendar.current.date(byAdding: .day, value: frequency.days, to: anchorDate)
+    }
+
+    @discardableResult
+    func markComplete(notes: String = "", completionDate: Date = Date()) -> CompletionRecord {
+        let record = CompletionRecord(task: self, notes: notes, completedAt: completionDate)
         completionHistory.append(record)
-        lastCompleted = Date()
-        nextDue = Calendar.current.date(byAdding: .day, value: frequency.days, to: Date())
+        lastCompleted = completionDate
+        nextDue = Calendar.current.date(byAdding: .day, value: frequency.days, to: completionDate)
+        return record
     }
 }

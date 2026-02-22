@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 enum AppMediaMode {
     private enum Flag {
@@ -59,6 +60,7 @@ enum AppMediaMode {
 
 @MainActor
 enum AppMediaSeeder {
+    private static let logger = Logger(subsystem: "com.homekeep", category: "AppMediaSeeder")
     static func seedIfNeeded(context: ModelContext) {
         guard AppMediaMode.enabled else { return }
 
@@ -86,7 +88,7 @@ enum AppMediaSeeder {
             context.delete(zone)
         }
 
-        try? context.save()
+        do { try context.save() } catch { logger.error("Failed to save after store reset: \(error)") }
     }
 
     private static func applyDeterministicDemoState(context: ModelContext) {
@@ -119,6 +121,6 @@ enum AppMediaSeeder {
             }
         }
 
-        try? context.save()
+        do { try context.save() } catch { logger.error("Failed to save demo state: \(error)") }
     }
 }

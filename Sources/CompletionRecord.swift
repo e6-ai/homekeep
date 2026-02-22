@@ -8,9 +8,9 @@ final class CompletionRecord {
     var notes: String
     var task: MaintenanceTask?
     
-    init(task: MaintenanceTask, notes: String = "") {
+    init(task: MaintenanceTask, notes: String = "", completedAt: Date = Date()) {
         self.id = UUID()
-        self.completedAt = Date()
+        self.completedAt = completedAt
         self.notes = notes
         self.task = task
     }

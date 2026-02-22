@@ -34,31 +34,50 @@ struct HistoryView: View {
                     ForEach(groupedRecords, id: \.0) { month, monthRecords in
                         Section(month) {
                             ForEach(monthRecords) { record in
-                                HStack(spacing: 12) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(record.task?.name ?? "Unknown Task")
-                                            .font(.subheadline.weight(.medium))
-                                        Text(record.completedAt.formatted(date: .abbreviated, time: .shortened))
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if !record.notes.isEmpty {
-                                        Image(systemName: "note.text")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
+                                HistoryRow(record: record)
                             }
                         }
                     }
                 }
                 .navigationTitle("History")
+            }
+        }
+    }
+}
+
+private struct HistoryRow: View {
+    let record: CompletionRecord
+
+    var body: some View {
+        Group {
+            if let task = record.task {
+                NavigationLink(destination: TaskDetailView(task: task)) {
+                    rowContent
+                }
+            } else {
+                rowContent
+            }
+        }
+    }
+
+    private var rowContent: some View {
+        HStack(spacing: 12) {
+            Image(systemName: record.task?.sfSymbol ?? "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(record.task?.name ?? "Unknown Task")
+                    .font(.subheadline.weight(.medium))
+                Text(record.completedAt.formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if !record.notes.isEmpty {
+                    Text(record.notes)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
             }
         }
     }

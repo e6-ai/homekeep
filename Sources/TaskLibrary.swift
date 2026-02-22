@@ -44,6 +44,7 @@ struct TaskLibrary {
         TaskTemplate(name: "Clean Refrigerator Coils", description: "Vacuum dust from refrigerator condenser coils (underneath or behind).", frequency: .biannual, zone: "Kitchen", season: nil, sfSymbol: "refrigerator.fill"),
         TaskTemplate(name: "Deep Clean Oven", description: "Run self-clean cycle or manually clean oven interior.", frequency: .quarterly, zone: "Kitchen", season: nil, sfSymbol: "flame.fill"),
         TaskTemplate(name: "Clean Dishwasher", description: "Run empty cycle with dishwasher cleaner. Clean filter and spray arms.", frequency: .monthly, zone: "Kitchen", season: nil, sfSymbol: "dishwasher.fill"),
+        TaskTemplate(name: "Replace Water Filters", description: "Replace refrigerator water filter and any whole-house filters.", frequency: .biannual, zone: "Kitchen", season: nil, sfSymbol: "line.3.crossed.swirl.circle.fill"),
         
         // Laundry
         TaskTemplate(name: "Clean Dryer Vent", description: "Disconnect and clean entire dryer vent duct. Critical fire safety task.", frequency: .annual, zone: "Laundry", season: nil, sfSymbol: "wind"),
@@ -61,7 +62,6 @@ struct TaskLibrary {
         TaskTemplate(name: "Lubricate Door Hinges", description: "Apply WD-40 or silicone spray to squeaky door hinges.", frequency: .annual, zone: "General", season: nil, sfSymbol: "door.left.hand.open"),
         TaskTemplate(name: "Touch Up Interior Paint", description: "Fix scuffs, nail holes, and chips in interior paint.", frequency: .annual, zone: "General", season: .spring, sfSymbol: "paintbrush.fill"),
         TaskTemplate(name: "Clean Windows", description: "Wash all interior and exterior window surfaces.", frequency: .biannual, zone: "General", season: .spring, sfSymbol: "window.vertical.open"),
-        TaskTemplate(name: "Replace Water Filters", description: "Replace refrigerator water filter and any whole-house filters.", frequency: .biannual, zone: "Kitchen", season: nil, sfSymbol: "line.3.crossed.swirl.circle.fill"),
         
         // Garage
         TaskTemplate(name: "Lubricate Garage Door", description: "Spray silicone lubricant on garage door tracks, rollers, and hinges.", frequency: .biannual, zone: "Garage", season: nil, sfSymbol: "door.garage.open"),

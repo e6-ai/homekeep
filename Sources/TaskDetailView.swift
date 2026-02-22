@@ -1,12 +1,19 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct TaskDetailView: View {
     @Bindable var task: MaintenanceTask
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Zone.sortOrder) private var zones: [Zone]
     @State private var showingCompleteConfirm = false
+    @State private var showingDeleteConfirm = false
     @State private var completionNote = ""
+
+    private var recentHistory: [CompletionRecord] {
+        Array(task.completionHistory.sorted(by: { $0.completedAt > $1.completedAt }).prefix(10))
+    }
     
     var body: some View {
         ScrollView {
@@ -34,7 +41,7 @@ struct TaskDetailView: View {
                     if let days = task.daysUntilDue {
                         HStack {
                             Circle()
-                                .fill(days < 0 ? .red : days <= 7 ? .orange : .green)
+                                .fill(task.urgencyColor)
                                 .frame(width: 8, height: 8)
                             Text(statusText(days: days))
                                 .font(.subheadline.weight(.medium))
@@ -83,6 +90,7 @@ struct TaskDetailView: View {
                     .padding()
                     .onChange(of: task.isEnabled) { _, enabled in
                         if enabled {
+                            task.ensureNextDueIfMissing()
                             NotificationService.shared.scheduleReminder(for: task)
                         } else {
                             NotificationService.shared.cancelReminder(for: task)
@@ -125,9 +133,29 @@ struct TaskDetailView: View {
                     }
                     .padding()
                     .onChange(of: task.frequency) { _, _ in
-                        task.nextDue = Calendar.current.date(byAdding: .day, value: task.frequency.days, to: task.lastCompleted ?? Date())
+                        task.refreshNextDueFromLastCompleted()
                         NotificationService.shared.scheduleReminder(for: task)
                     }
+
+                    Divider().padding(.leading)
+
+                    Picker("Zone", selection: $task.zone) {
+                        Text("None").tag(Zone?.none)
+                        ForEach(zones) { zone in
+                            Label(zone.name, systemImage: zone.sfSymbol).tag(Zone?.some(zone))
+                        }
+                    }
+                    .padding()
+
+                    Divider().padding(.leading)
+
+                    Picker("Season", selection: $task.season) {
+                        Text("Any").tag(Season?.none)
+                        ForEach(Season.allCases) { s in
+                            Label(s.rawValue, systemImage: s.icon).tag(Season?.some(s))
+                        }
+                    }
+                    .padding()
                 }
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
@@ -155,7 +183,7 @@ struct TaskDetailView: View {
                             .padding(.horizontal)
                         
                         VStack(spacing: 0) {
-                            ForEach(task.completionHistory.sorted(by: { $0.completedAt > $1.completedAt }).prefix(10)) { record in
+                            ForEach(recentHistory) { record in
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundStyle(.green)
@@ -171,7 +199,7 @@ struct TaskDetailView: View {
                                 .padding(.horizontal)
                                 .padding(.vertical, 10)
                                 
-                                if record.id != task.completionHistory.sorted(by: { $0.completedAt > $1.completedAt }).prefix(10).last?.id {
+                                if record.id != recentHistory.last?.id {
                                     Divider().padding(.leading, 44)
                                 }
                             }
@@ -197,8 +225,7 @@ struct TaskDetailView: View {
                 // Delete if custom
                 if task.isCustom {
                     Button(role: .destructive) {
-                        modelContext.delete(task)
-                        dismiss()
+                        showingDeleteConfirm = true
                     } label: {
                         Label("Delete Task", systemImage: "trash")
                             .frame(maxWidth: .infinity)
@@ -213,10 +240,8 @@ struct TaskDetailView: View {
         .alert("Mark Complete", isPresented: $showingCompleteConfirm) {
             TextField("Note (optional)", text: $completionNote)
             Button("Complete") {
-                let record = CompletionRecord(task: task, notes: completionNote)
-                task.completionHistory.append(record)
-                task.lastCompleted = Date()
-                task.nextDue = Calendar.current.date(byAdding: .day, value: task.frequency.days, to: Date())
+                task.markComplete(notes: completionNote)
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 NotificationService.shared.scheduleReminder(for: task)
                 completionNote = ""
             }
@@ -224,10 +249,23 @@ struct TaskDetailView: View {
         } message: {
             Text("Mark \"\(task.name)\" as completed today?")
         }
+        .alert("Delete Task?", isPresented: $showingDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                NotificationService.shared.cancelReminder(for: task)
+                modelContext.delete(task)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This custom task will be permanently deleted.")
+        }
     }
     
     private func statusText(days: Int) -> String {
-        if days < 0 { return "\(abs(days)) days overdue" }
+        if days < 0 {
+            let dayCount = abs(days)
+            return "\(dayCount) day\(dayCount == 1 ? "" : "s") overdue"
+        }
         if days == 0 { return "Due today" }
         if days == 1 { return "Due tomorrow" }
         return "Due in \(days) days"

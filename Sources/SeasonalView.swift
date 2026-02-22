@@ -42,35 +42,45 @@ struct SeasonalView: View {
                     List {
                         ForEach(seasonTasks) { task in
                             NavigationLink(destination: TaskDetailView(task: task)) {
-                                HStack(spacing: 12) {
-                                    Image(systemName: task.sfSymbol)
-                                        .foregroundStyle(Color("AccentColor"))
-                                        .frame(width: 28)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(task.name)
-                                            .font(.subheadline.weight(.medium))
-                                        if let zone = task.zone {
-                                            Text(zone.name)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if let days = task.daysUntilDue {
-                                        Text(days < 0 ? "\(abs(days))d late" : days == 0 ? "Today" : "\(days)d")
-                                            .font(.caption)
-                                            .foregroundStyle(days < 0 ? .red : days <= 7 ? .orange : .secondary)
-                                    }
-                                }
+                                SeasonalTaskRow(task: task)
                             }
                         }
                     }
                 }
             }
             .navigationTitle("Seasonal")
+        }
+    }
+}
+
+private struct SeasonalTaskRow: View {
+    let task: MaintenanceTask
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: task.sfSymbol)
+                .font(.subheadline)
+                .foregroundStyle(task.urgencyColor)
+                .frame(width: 32, height: 32)
+                .background(task.urgencyColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(task.name)
+                    .font(.subheadline.weight(.medium))
+                if let zone = task.zone {
+                    Text(zone.name)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            if let days = task.daysUntilDue {
+                Text(days < 0 ? "\(abs(days))d late" : days == 0 ? "Today" : "\(days)d")
+                    .font(.caption)
+                    .foregroundStyle(task.urgencyColor)
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct HomeKeepApp: App {
@@ -24,8 +25,10 @@ struct HomeKeepApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    if !AppMediaMode.enabled {
-                        NotificationService.shared.requestAuthorization()
+                    if !AppMediaMode.enabled && NotificationService.shared.globalRemindersEnabled {
+                        Task {
+                            _ = await NotificationService.shared.requestAuthorization()
+                        }
                     }
                 }
         }

@@ -4,6 +4,7 @@ import SwiftData
 struct DashboardView: View {
     @Query(filter: #Predicate<MaintenanceTask> { $0.isEnabled }, sort: \MaintenanceTask.nextDue)
     private var tasks: [MaintenanceTask]
+    @AppStorage("hasSeenStarterTasksHint") private var hasSeenStarterTasksHint = false
     
     private var overdueTasks: [MaintenanceTask] {
         tasks.filter { $0.isOverdue }
@@ -28,6 +29,15 @@ struct DashboardView: View {
                         totalActive: tasks.count
                     )
                     .padding(.horizontal)
+
+                    if !hasSeenStarterTasksHint && !tasks.isEmpty {
+                        StarterTasksHint {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                hasSeenStarterTasksHint = true
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
                     
                     if !overdueTasks.isEmpty {
                         TaskSection(title: "Overdue", icon: "exclamationmark.circle.fill", color: .red, tasks: overdueTasks)
@@ -43,9 +53,11 @@ struct DashboardView: View {
                     
                     if overdueTasks.isEmpty && thisWeekTasks.isEmpty && thisMonthTasks.isEmpty {
                         ContentUnavailableView(
-                            "All Caught Up!",
-                            systemImage: "checkmark.circle.fill",
-                            description: Text("No tasks due this month. Great job keeping up!")
+                            tasks.isEmpty ? "Welcome to HomeKeep" : "All Caught Up!",
+                            systemImage: tasks.isEmpty ? "house.fill" : "checkmark.circle.fill",
+                            description: Text(tasks.isEmpty
+                                ? "Enable tasks from the Tasks tab to get started."
+                                : "No tasks due this month. Great job keeping up!")
                         )
                         .padding(.top, 40)
                     }
@@ -55,6 +67,34 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("HomeKeep")
         }
+    }
+}
+
+private struct StarterTasksHint: View {
+    let dismissAction: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "sparkles")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color("AccentColor"))
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Starter Tasks Enabled")
+                    .font(.subheadline.weight(.semibold))
+                Text("We started with 5 essential safety and HVAC tasks. Enable more anytime from Tasks.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            Button("Got it", action: dismissAction)
+                .font(.caption.weight(.semibold))
+        }
+        .padding(12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 

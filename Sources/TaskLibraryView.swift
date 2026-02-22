@@ -4,7 +4,6 @@ import SwiftData
 struct TaskLibraryView: View {
     @Query(sort: \Zone.sortOrder) private var zones: [Zone]
     @Query private var tasks: [MaintenanceTask]
-    @Environment(\.modelContext) private var modelContext
     @State private var showingAddTask = false
     @State private var searchText = ""
     
@@ -50,7 +49,7 @@ struct TaskLibraryView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Search tasks...")
-            .navigationTitle("All Tasks")
+            .navigationTitle("Tasks")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -73,8 +72,10 @@ struct TaskLibraryRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: task.sfSymbol)
+                .font(.subheadline)
                 .foregroundStyle(Color("AccentColor"))
-                .frame(width: 28)
+                .frame(width: 32, height: 32)
+                .background(Color("AccentColor").opacity(0.12), in: RoundedRectangle(cornerRadius: 7))
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(task.name)
@@ -97,9 +98,7 @@ struct TaskLibraryRow: View {
                 .labelsHidden()
                 .onChange(of: task.isEnabled) { _, enabled in
                     if enabled {
-                        if task.nextDue == nil {
-                            task.nextDue = Calendar.current.date(byAdding: .day, value: task.frequency.days, to: Date())
-                        }
+                        task.ensureNextDueIfMissing()
                         NotificationService.shared.scheduleReminder(for: task)
                     } else {
                         NotificationService.shared.cancelReminder(for: task)
