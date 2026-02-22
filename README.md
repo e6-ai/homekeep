@@ -15,7 +15,11 @@ A simple, beautiful iOS app to track recurring home maintenance tasks. Set it on
 
 ## Screenshots
 
-*Coming soon*
+Generate with:
+
+```bash
+./scripts/media/capture_screenshots.sh
+```
 
 ## Release Docs
 

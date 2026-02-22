@@ -36,7 +36,15 @@ Default duration is 28 seconds. Override with:
 VIDEO_DURATION_SECONDS=25 ./scripts/media/record_app_previews.sh
 ```
 
-## 3. How media mode works
+## 3. Sync latest generated media to appstore upload folder
+
+```bash
+./scripts/media/sync_latest_to_appstore.sh
+```
+
+This copies the most recent screenshot/video outputs into `appstore/media` using stable upload filenames.
+
+## 4. How media mode works
 
 The scripts launch the app with simulator-only arguments:
 
