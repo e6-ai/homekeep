@@ -54,3 +54,25 @@ The scripts launch the app with simulator-only arguments:
 - `-media-reset` (wipe and reseed demo data)
 
 Media scripts force and validate `30fps` output using `ffmpeg` and `ffprobe`.
+
+## 5. Fix audio for App Store previews (REQUIRED)
+
+**Apple requires an audio track in all app preview videos**, even if the app has no sound.
+Without it you get: _"App preview contains unsupported or corrupted audio"_.
+
+After generating videos, always run:
+
+```bash
+for f in appstore/media/*-app-preview.mp4; do
+  dur=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 "$f")
+  ffmpeg -y -i "$f" \
+    -f lavfi -i anullsrc=r=44100:cl=stereo \
+    -c:v copy -c:a aac -b:a 128k \
+    -t "$dur" -shortest \
+    "${f%.mp4}-tmp.mp4"
+  mv "${f%.mp4}-tmp.mp4" "$f"
+done
+```
+
+Verify with: `ffprobe -v quiet -show_streams file.mp4 | grep codec_type`
+— must show both `video` and `audio`.
